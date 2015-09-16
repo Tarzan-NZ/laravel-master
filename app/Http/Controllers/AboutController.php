@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use App\Http\Controllers\Controller;
+use App\Staff;
 
 class AboutController extends Controller
 {
@@ -19,23 +20,12 @@ class AboutController extends Controller
         // Create some data
         $title = 'About Page TEST';
         $metaDesc = 'We have staff members';
-        $staff = [
-                    ['name'=>'Mel', 'age'=>31],
-                    ['name'=>'Brian', 'age'=>14],
-                    ['name'=>'Jake']
-                ];
 
-        $comments = [
-        //  ['heading'=>'Great Product', 'comment'=>'I love this thing!'],
-        //  ['heading'=>'<h1>Hello</h1>', 'comment'=>'<script>location="http://www.trademe.co.nz"</script>']
-         ];
+        $comments = [];
 
-        return view('about.index')->with([
-            'title' => $title,
-            'metaDesc' => $metaDesc,
-            'staff' => $staff,
-            'comments'=>$comments
-        ]);
+        $allStaff = Staff::all();
+
+        return view('about.index', compact('title', 'metaDesc','allStaff'));
     }
 
     /**
@@ -58,20 +48,23 @@ class AboutController extends Controller
     {   
         $this->validate( $request, [
             'first_name'=>'required|min:2|max:20',
-            'last_name'=>'required|min:2|max:30',
+            'last_name'=>'required|min:2|max:30'
         ] );
 
         // Validation passed
-        // $staff = new \App\Staff();
+        // $staff = new Staff();
 
         // $staff->first_name = $request->first_name;
         // $staff->last_name = $request->last_name;
-        // // $staff->age = $request->age;
+        // $staff->age = $request->age;
 
         // $staff->save();
-        \App\Staff::create($request->all());
 
-        return $request;
+        $request['slug'] = str_slug($request->first_name.' '.$request->last_name);
+
+        $staffMember = Staff::create($request->all());
+
+        return redirect('about/'.$staffMember->slug);
     }
 
     /**
@@ -80,9 +73,11 @@ class AboutController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function show($id)
+    public function show($slug)
     {
-        return $request;
+        $staffMember = Staff::where('slug', $slug)->firstOrFail();
+
+        return view('about.show', compact('staffMember'));
     }
 
     /**
@@ -91,9 +86,11 @@ class AboutController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function edit($id)
-    {
-        //
+    public function edit($slug)
+    {   
+        $staffMember = Staff::where('slug', $slug)->firstOrFail();
+
+        return view('about.edit', compact('staffMember'));
     }
 
     /**

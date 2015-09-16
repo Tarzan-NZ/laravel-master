@@ -25,7 +25,7 @@ class AddAgeToStaffTable extends Migration
     public function down()
     {
         Schema::table('staff', function (Blueprint $table) {
-            $table->column('age');
+            $table->dropColumn('age');
         });
     }
 }

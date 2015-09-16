@@ -7,49 +7,12 @@
 @section('content')
 	<h1>About page</h1>
 
-	<ul>
-	@foreach($staff as $staffMember)
-		<li>{{ $staffMember['name'] }} is {{ $staffMember['age'] or 'unknown' }} years old
-			
-			@if(isset($staffMember['age']))
-				
-				@if($staffMember['age'] >= 21)
-					Adult.
-				@else
-					Child.
-				@endif
-
-			@endif
-
-		</li>
-	@endforeach
-	</ul>
-
-@endsection
-
-@section('footer')
-
-	@parent
+	<a href="{{ url('about/create') }}">Create New Staff Member</a>
 
 	<ul>
-		<li>Phone: 0800 1234567</li>
+		@foreach ($allStaff as $staffMember)
+		<li><a href="{{ url('about/'.$staffMember->slug) }}">{{$staffMember->first_name}} {{$staffMember->last_name}}</a></li>			
+		@endforeach
 	</ul>
-
-	@forelse($comments as $comment)
-	<div>
-		{{ $comment['heading'] }}
-		<br />
-		{{ $comment['comment'] }}
-	</div>
-	@empty
-	<div>
-		No Comments
-	</div>
-	@endforelse
-
 	
-	<?php echo date('Y'); ?>
-
-
-
 @endsection
