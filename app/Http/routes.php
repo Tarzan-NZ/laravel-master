@@ -27,7 +27,3 @@ Route::resource('about', 'AboutController');
 
 
 
-
-
-
-

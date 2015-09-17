@@ -48,21 +48,26 @@ class AboutController extends Controller
     {   
         $this->validate( $request, [
             'first_name'=>'required|min:2|max:20',
-            'last_name'=>'required|min:2|max:30'
+            'last_name'=>'required|min:2|max:30',
+            'age'=>'required|integer|between:0,130',
+            'profile_image'=>'required|image|between:0,2000'
         ] );
 
-        // Validation passed
-        // $staff = new Staff();
+        $fileExtension = $request->file('profile_image')->getClientOriginalExtension();
+        $fileName = 'staff-'.uniqid().'.'.$fileExtension;
 
-        // $staff->first_name = $request->first_name;
-        // $staff->last_name = $request->last_name;
-        // $staff->age = $request->age;
+        $request->file('profile_image')->move('img/staff', $fileName);
+        \Image::make('img/staff/'.$fileName)->resize(240, null, function($constraint){
+            $constraint->aspectRatio();
+        })->save('img/staff/'.$fileName);
 
-        // $staff->save();
+        // Extract the form data
+        $input = $request->all();
 
-        $request['slug'] = str_slug($request->first_name.' '.$request->last_name);
+        $input['slug'] = str_slug($request->first_name.' '.$request->last_name);
+        $input['profile_image'] = $fileName;
 
-        $staffMember = Staff::create($request->all());
+        $staffMember = Staff::create($input);
 
         return redirect('about/'.$staffMember->slug);
     }
@@ -100,9 +105,30 @@ class AboutController extends Controller
      * @param  int  $id
      * @return Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request, $slug)
     {
-        //
+        
+    // Validation
+        $this->validate( $request, [
+            'first_name'=>'required|min:2|max:20',
+            'last_name'=>'required|min:2|max:30',
+            'age'=>'required|integer|between:0,130'
+        ] );
+
+        // Find the user or staff member to edit
+        $staffMember = Staff::where('slug', $slug)->firstOrFail();
+
+        $staffMember->first_name = $request->first_name;
+        $staffMember->last_name = $request->last_name;
+        $staffMember->age = $request->age;
+
+        // Insert a slug into the request
+        $staffMember->slug = str_slug($request->first_name.' '.$request->last_name);
+
+        // Update the database
+        $staffMember->save();
+
+        return redirect('about/'.$staffMember->slug);
     }
 
     /**
