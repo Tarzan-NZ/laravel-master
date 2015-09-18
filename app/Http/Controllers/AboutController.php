@@ -112,7 +112,9 @@ class AboutController extends Controller
         $this->validate( $request, [
             'first_name'=>'required|min:2|max:20',
             'last_name'=>'required|min:2|max:30',
-            'age'=>'required|integer|between:0,130'
+            'age'=>'required|integer|between:0,130',
+            'profile_image'=>'image|between:0,2000'
+
         ] );
 
         // Find the user or staff member to edit
@@ -124,6 +126,26 @@ class AboutController extends Controller
 
         // Insert a slug into the request
         $staffMember->slug = str_slug($request->first_name.' '.$request->last_name);
+
+        // If the user provided a new image
+        if ($request->hasFile('profile_image')) {
+            
+            // Generare a new file name
+            $fileExtension = $request->file('profile_image')->getClientOriginalExtension();
+            $fileName = 'staff-'.uniqid().'.'.$fileExtension;
+
+            $request->file('profile_image')->move('img/staff', $fileName);
+            \Image::make('img/staff/'.$fileName)->resize(240, null, function($constraint){
+                $constraint->aspectRatio();
+            })->save('img/staff/'.$fileName);
+
+            // Delete the old image
+            \File::Delete('img/staff/'.$staffMember->profile_image);
+
+            // Tell  database
+            $staffMember->profile_image = $fileName;
+
+        }
 
         // Update the database
         $staffMember->save();
